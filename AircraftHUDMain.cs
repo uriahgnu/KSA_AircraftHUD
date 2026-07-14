@@ -216,14 +216,19 @@ namespace AircraftHUD
         static readonly double G = 6.67430e-11; // m^3 / (kg s^2)
         static double GetGravity(Vehicle vehicle)
         {
-            Astronomical body = vehicle.Parent;
+            if (vehicle.Orbit.Parent is Celestial celestial)
+            {
+                double r = vehicle.DistanceTo(celestial);
 
-            double r = vehicle.DistanceTo(body);
+                if (r < 1.0)
+                    return 0; // safety
 
-            if (r < 1.0)
-                return 0; // safety
-
-            return (G * body.Mass) / (r * r);
+                return (G * celestial.Mass) / (r * r);
+            }
+            else
+            {
+                return 9.81;
+            }
         }
 
         public static string FormatStringDecimal(float value, int decimals = 2)
@@ -791,7 +796,7 @@ namespace AircraftHUD
             Vehicle controlledVehicle = Program.ControlledVehicle;
             if (controlledVehicle == null) { return; }
 
-            Astronomical parentBody = controlledVehicle.Parent;
+            Astronomical parentBody = (Astronomical)controlledVehicle.Parent;
             if (parentBody == null) { return; }
 
             // HUD should only render in orbit mode
