@@ -1,6 +1,6 @@
 # 🚀KSA AircraftHUD v0.1.9
 
-Kitten Space Agency Version: `ksa\_v2026.2.5.3428`
+Kitten Space Agency Version: `ksa_v2026.2.5.3428`
 
 
 KSA: [https://ahwoo.com/app/100000/kitten-space-agency](https://ahwoo.com/app/100000/kitten-space-agency)
@@ -26,14 +26,15 @@ Forum: [https://forums.ahwoo.com/threads/aircraft-hud.618/](https://forums.ahwoo
 
 ##### manifest.toml
 
-```[[mods]]
+```
+[[mods]]
 id = "ModMenu"
 enabled = true
 
 [[mods]]
 id = "AircraftHUD"
-enabled = true```
-
+enabled = true
+```
 
 ### Credits
 
