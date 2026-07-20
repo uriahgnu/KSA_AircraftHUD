@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Assets>
+	/// <PostProcessingShader Id="GlassBlurH" Path="Shaders/GaussianBlurH.frag" RenderPassId="62" RequiresUniqueRenderpass="true" />
+	/// <PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" />
+	/// <PostProcessingShader Id="GlassEffects" Path="Shaders/GlassEffects.frag" RenderPassId="64" SubpassId="0" />
 	<ImGuiShader Id="HudShader">
 	    <Vertex Id="ImGuiVertexPost" />
 		<Fragment Path="Shaders/HUD.frag" />

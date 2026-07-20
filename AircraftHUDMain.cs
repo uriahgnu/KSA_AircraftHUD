@@ -41,16 +41,19 @@ namespace AircraftHUD
         }
 
         static bool debugAreas = false;
+        static ImColor8 debugColor = new ImColor8(255, 0, 255, 255);
 
         static bool enabled = true;
         static bool symbology = false;
         static bool settingsPageOn = false;
         static bool orbitMode = true;
+        static bool effectsOutsideIVA = true;
 
         static DistanceUnits CurrentDistUnits { get; set; } = DistanceUnits.Metric;
         static SpeedUnits CurrentSpeedUnits { get; set; } = SpeedUnits.Metric;
 
         static float4 hudColorPicker = new float4(0.3f, 1f, 0f, 1f);
+        static float4 hudColor1Picker = new float4(0.3f, 1f, 0f, 1f);
         static float4 hudColor2Picker = new float4(0.3f, 1f, 0f, 1f);
         static float4 shadowColorPicker = new float4(0f, 1f, 0f, 1f);
         static float textScale = 1f;
@@ -63,8 +66,8 @@ namespace AircraftHUD
         private float verticalScale;
 
         static ImColor8 color = new ImColor8(78, 255, 0, 255);
+        static ImColor8 color1 = new ImColor8(78, 255, 0, 255);
         static ImColor8 color2 = new ImColor8(78, 255, 0, 255);
-        static ImColor8 color3 = new ImColor8(255, 0, 255, 255);
         static ImColor8 shadowColor = new ImColor8(0, 0, 0, 150);
         static float2 shadowOffset = new float2(0f, 2f);
         static float line_thickness = 2.0f;
@@ -563,6 +566,9 @@ namespace AircraftHUD
                     case "OrbitMode":
                         HUD.orbitMode = value == "1";
                         break;
+                    case "EfectsOutsideIVA":
+                        HUD.effectsOutsideIVA = value == "1";
+                        break;
                     case "DistanceUnits":
                         if (Enum.TryParse(value, out DistanceUnits distUnits))
                             HUD.CurrentDistUnits = distUnits;
@@ -573,6 +579,9 @@ namespace AircraftHUD
                         break;
                     case "HUDColor":
                         HUD.hudColorPicker = ParseColor(value);
+                        break;
+                    case "HUDColor1":
+                        HUD.hudColor1Picker = ParseColor(value);
                         break;
                     case "HUDColor2":
                         HUD.hudColor2Picker = ParseColor(value);
@@ -597,9 +606,11 @@ namespace AircraftHUD
             w.WriteLine("[HUD]");
             w.WriteLine($"Enabled={(HUD.enabled ? 1 : 0)}");
             w.WriteLine($"OrbitMode={(HUD.orbitMode ? 1 : 0)}");
+            w.WriteLine($"EffectsOutsideIVA={(HUD.effectsOutsideIVA ? 1 : 0)}");
             w.WriteLine($"DistanceUnits={HUD.CurrentDistUnits.ToString()}");
             w.WriteLine($"SpeedUnits={HUD.CurrentSpeedUnits.ToString()}");
             w.WriteLine($"HUDColor={FormatColor(HUD.hudColorPicker)}");
+            w.WriteLine($"HUDColor1={FormatColor(HUD.hudColor1Picker)}");
             w.WriteLine($"HUDColor2={FormatColor(HUD.hudColor2Picker)}");
             w.WriteLine($"ShadowColor={FormatColor(HUD.shadowColorPicker)}");
             w.WriteLine($"TextScale={HUD.textScale.ToString(CultureInfo.InvariantCulture)}");
@@ -636,6 +647,7 @@ namespace AircraftHUD
             shadowOffset = new float2(0f, line_thickness);
 
             color = ImGui.ColorConvertFloat4ToU32(hudColorPicker);
+            color1 = ImGui.ColorConvertFloat4ToU32(hudColor1Picker);
             color2 = ImGui.ColorConvertFloat4ToU32(hudColor2Picker);
             shadowColor = ImGui.ColorConvertFloat4ToU32(shadowColorPicker);
 
@@ -727,6 +739,11 @@ namespace AircraftHUD
                     HUD.orbitMode = !HUD.orbitMode;
                 }
 
+                if (ImGui.Button(HUD.effectsOutsideIVA ? "Hide Effects" : "Show Effects"))
+                {
+                    HUD.effectsOutsideIVA = !HUD.effectsOutsideIVA;
+                }
+
                 if (ImGui.Button(HUD.symbology ? "Hide Symbology" : "Show Symbology"))
                 {
                     HUD.symbology = !HUD.symbology;
@@ -771,6 +788,11 @@ namespace AircraftHUD
                     ImGui.OpenPopup("hudColorPicker");
                 }
                 ImGui.SameLine();
+                if (ImGui.ColorButton("##hudColorPicker1Btn", hudColor1Picker))
+                {
+                    ImGui.OpenPopup("hudColor1Picker");
+                }
+                ImGui.SameLine();
                 if (ImGui.ColorButton("##hudColorPicker2Btn", hudColor2Picker))
                 {
                     ImGui.OpenPopup("hudColor2Picker");
@@ -785,6 +807,12 @@ namespace AircraftHUD
                 {
                     ImGui.ColorPicker4("##hudColorPicker", ref hudColorPicker);
                     HUD.color = ImGui.ColorConvertFloat4ToU32(hudColorPicker);
+                    ImGui.EndPopup();
+                }
+                if (ImGui.BeginPopup("hudColor1Picker"))
+                {
+                    ImGui.ColorPicker4("##hudColor1Picker", ref hudColor1Picker);
+                    HUD.color1 = ImGui.ColorConvertFloat4ToU32(hudColor1Picker);
                     ImGui.EndPopup();
                 }
                 if (ImGui.BeginPopup("hudColor2Picker"))
@@ -825,7 +853,8 @@ namespace AircraftHUD
             if (!HUD.enabled) { return; }
 
             // HUD should only render in orbit mode
-            if (Program.GetCameraMode().Equals(CameraMode.Map) || Program.GetCameraMode().Equals(CameraMode.Free)) { return; }
+            CameraMode CamMode = Program.GetCameraMode();
+            if (CamMode.Equals(CameraMode.Map) || CamMode.Equals(CameraMode.Free)) { return; }
 
             Vehicle controlledVehicle = Program.ControlledVehicle;
             if (controlledVehicle == null) { return; }
@@ -876,7 +905,7 @@ namespace AircraftHUD
             ImGui.Begin("HUDFullscreenWindow", flags);
             ImDrawListPtr draw_list = ImGui.GetWindowDrawList();
 
-            SxImGui.CustomShader(HudShader);
+            if (CamMode.Equals(CameraMode.IVA) || effectsOutsideIVA) { SxImGui.CustomShader(HudShader); }
 
             // Workaround: It seems that ImGui window gets clipped, draw almost transparent rect to force full size
             ImDrawListExtensions.AddRectFilled(draw_list, new float2(0f, 0f), window_size, new ImColor8(0, 0, 0, 1), 0);
@@ -892,7 +921,6 @@ namespace AircraftHUD
                 altitudeRadar = ConvertToDistanceUnits((float)controlledVehicle.GetRadarAltitude());
             }
             altitude = ConvertToDistanceUnits(altitude);
-
 
             // ORBIT
             float eccentricity = (float)controlledVehicle.Orbit.Eccentricity;
@@ -1022,8 +1050,8 @@ namespace AircraftHUD
 
                 if (HUD.symbology)
                 {
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.25f)), color3, "mach", TextAlignHoriz.Right);
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.15f)), color3, "alpha", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.25f)), debugColor, "mach", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.15f)), debugColor, "alpha", TextAlignHoriz.Right);
                 }
 
                 // ROLL / PITCH
@@ -1043,10 +1071,10 @@ namespace AircraftHUD
                     float2 flightVecOffset = new float2(betaDeg * DegToPx, alphaDeg * DegToPx);
                     float2 flightVecCenter = new float2(localCenter.X + flightVecOffset.X, localCenter.Y - flightVecOffset.Y);
                     ImDrawListExtensions.AddCircle(draw_list, flightVecCenter + shadowOffset, flightVecRadius1, shadowColor, 16, line_thickness);
-                    ImDrawListExtensions.AddCircle(draw_list, flightVecCenter, flightVecRadius1, color, 16, line_thickness);
-                    DrawLine(draw_list, flightVecCenter + new float2(flightVecRadius1, 0.0f), flightVecCenter + new float2(flightVecRadius2, 0.0f), color, line_thickness);
-                    DrawLine(draw_list, flightVecCenter - new float2(flightVecRadius1, 0.0f), flightVecCenter - new float2(flightVecRadius2, 0.0f), color, line_thickness);
-                    ImDrawListExtensions.AddLine(draw_list, flightVecCenter - new float2(0.0f, flightVecRadius1), flightVecCenter - new float2(0.0f, flightVecRadius2), color, line_thickness);
+                    ImDrawListExtensions.AddCircle(draw_list, flightVecCenter, flightVecRadius1, color1, 16, line_thickness);
+                    DrawLine(draw_list, flightVecCenter + new float2(flightVecRadius1, 0.0f), flightVecCenter + new float2(flightVecRadius2, 0.0f), color1, line_thickness);
+                    DrawLine(draw_list, flightVecCenter - new float2(flightVecRadius1, 0.0f), flightVecCenter - new float2(flightVecRadius2, 0.0f), color1, line_thickness);
+                    ImDrawListExtensions.AddLine(draw_list, flightVecCenter - new float2(0.0f, flightVecRadius1), flightVecCenter - new float2(0.0f, flightVecRadius2), color1, line_thickness);
                 }
                 else
                 {
@@ -1062,14 +1090,14 @@ namespace AircraftHUD
                     float2 flightVecCenter = new float2(localCenter.X + flightVecOffset.X, localCenter.Y - flightVecOffset.Y);
 
                     float flightVecR45 = flightVecRadius1 * 0.7071f;
-                    DrawLine(draw_list, flightVecCenter + new float2(flightVecR45, flightVecR45), flightVecCenter - new float2(flightVecR45, flightVecR45), color, line_thickness);
-                    DrawLine(draw_list, flightVecCenter + new float2(-flightVecR45, flightVecR45), flightVecCenter - new float2(-flightVecR45, flightVecR45), color, line_thickness);
+                    DrawLine(draw_list, flightVecCenter + new float2(flightVecR45, flightVecR45), flightVecCenter - new float2(flightVecR45, flightVecR45), color1, line_thickness);
+                    DrawLine(draw_list, flightVecCenter + new float2(-flightVecR45, flightVecR45), flightVecCenter - new float2(-flightVecR45, flightVecR45), color1, line_thickness);
 
                     ImDrawListExtensions.AddCircle(draw_list, flightVecCenter + shadowOffset, flightVecRadius1, shadowColor, 16, line_thickness);
-                    ImDrawListExtensions.AddCircle(draw_list, flightVecCenter, flightVecRadius1, color, 16, line_thickness);
-                    DrawLine(draw_list, flightVecCenter + new float2(flightVecRadius1, 0.0f), flightVecCenter + new float2(flightVecRadius2, 0.0f), color, line_thickness);
-                    DrawLine(draw_list, flightVecCenter - new float2(flightVecRadius1, 0.0f), flightVecCenter - new float2(flightVecRadius2, 0.0f), color, line_thickness);
-                    ImDrawListExtensions.AddLine(draw_list, flightVecCenter - new float2(0.0f, flightVecRadius1), flightVecCenter - new float2(0.0f, flightVecRadius2), color, line_thickness);
+                    ImDrawListExtensions.AddCircle(draw_list, flightVecCenter, flightVecRadius1, color1, 16, line_thickness);
+                    DrawLine(draw_list, flightVecCenter + new float2(flightVecRadius1, 0.0f), flightVecCenter + new float2(flightVecRadius2, 0.0f), color1, line_thickness);
+                    DrawLine(draw_list, flightVecCenter - new float2(flightVecRadius1, 0.0f), flightVecCenter - new float2(flightVecRadius2, 0.0f), color1, line_thickness);
+                    ImDrawListExtensions.AddLine(draw_list, flightVecCenter - new float2(0.0f, flightVecRadius1), flightVecCenter - new float2(0.0f, flightVecRadius2), color1, line_thickness);
 
                     //DrawTextAligned(draw_list, new float2(localCenter.X, localCenter.Y + textPosX*0.2f), color2, "alpha: " + FormatStringDecimal(alphaDeg, 3));
                     //DrawTextAligned(draw_list, new float2(localCenter.X, localCenter.Y - textPosX * 0.2f), color2, "beta: " + FormatStringDecimal(betaDeg, 3));
@@ -1144,24 +1172,24 @@ namespace AircraftHUD
                 if (HUD.symbology)
                 {
                     // altitude
-                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y), color3, useRadarAlt ? "altitude (radar)" : "altitude (msl)", TextAlignHoriz.Left);
+                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y), debugColor, useRadarAlt ? "altitude (radar)" : "altitude (msl)", TextAlignHoriz.Left);
 
                     // velocity
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y), color3, "velocity (" + SpeedUnits + ")", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y), debugColor, "velocity (" + SpeedUnits + ")", TextAlignHoriz.Right);
 
                     // top left
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y - (verticalScaleLenY * 1.15f)), color3, "eccentricity", TextAlignHoriz.Right);
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y - (verticalScaleLenY * 1.25f)), color3, "inclination", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y - (verticalScaleLenY * 1.15f)), debugColor, "eccentricity", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y - (verticalScaleLenY * 1.25f)), debugColor, "inclination", TextAlignHoriz.Right);
 
                     // top right
-                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y - (verticalScaleLenY * 1.25f)), color3, "apoapsis", TextAlignHoriz.Left);
-                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y - (verticalScaleLenY * 1.15f)), color3, "periapsis", TextAlignHoriz.Left);
+                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y - (verticalScaleLenY * 1.25f)), debugColor, "apoapsis", TextAlignHoriz.Left);
+                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y - (verticalScaleLenY * 1.15f)), debugColor, "periapsis", TextAlignHoriz.Left);
 
                     // bottom left
-                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.35f)), color3, "g force", TextAlignHoriz.Right);
+                    DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.35f)), debugColor, "g force", TextAlignHoriz.Right);
 
                     // bottom right
-                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y + (verticalScaleLenY * 1.25f)), color3, "vertical velocity", TextAlignHoriz.Left);
+                    DrawTextAligned(draw_list, new float2(localCenter.X + textPosX3, localCenter.Y + (verticalScaleLenY * 1.25f)), debugColor, "vertical velocity", TextAlignHoriz.Left);
                 }
             }
 
