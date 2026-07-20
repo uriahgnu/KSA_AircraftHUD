@@ -1,6 +1,6 @@
-# 🚀KSA AircraftHUD v0.2.0
+# 🚀KSA AircraftHUD v0.2.1
 
-Kitten Space Agency Version: `ksa_v2026.7.5.4892`
+Kitten Space Agency Version: `ksa_v2026.7.6.4939`
 
 
 KSA: [https://ahwoo.com/app/100000/kitten-space-agency](https://ahwoo.com/app/100000/kitten-space-agency)
