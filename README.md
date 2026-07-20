@@ -12,19 +12,21 @@ Forum: [https://forums.ahwoo.com/threads/aircraft-hud.618/](https://forums.ahwoo
 * [KittenExtensions](https://github.com/tsholmes/KittenExtensions/releases)
 * [ShaderExtensions](https://github.com/AMPW-german/ShaderExtensions/releases)
 
-### Installation
+### Recommended Mods
+* [KSA G Effects](https://github.com/AMPW-german/KSAGEffects/releases)
 
+### Installation
 * Download the latest release of StarMap, follow the instructions to install until you are able to launch KSA from StarMap.exe
 * Download the latest release of ModMenu, KittenExtensions and ShaderExtensions from the links above
 * Unzip both ModMenu and AircraftHUD into `Documents/My Games/Kitten Space Agency/mods/` (persistent)
 * Open manifest.toml and add the lines below to enable both mods
 * Always launch KSA using StarMap.Loader.exe!
 
-#### CKAN-KSA
-Alternatively AircraftHUD is also available from [CKAN-KSA (Early Beta)](https://github.com/KSAModding/CKAN-KSA/releases), you must compile CKAN yourself currently.
-
 ##### manifest.toml
 Editing manifest.toml is no longer required, a popup will ask you to enable mods the first time, then restart the game.
+
+#### CKAN-KSA
+Alternatively AircraftHUD is also available from [CKAN-KSA (Early Beta)](https://github.com/KSAModding/CKAN-KSA/releases), you must compile CKAN yourself currently.
 
 ### Code Dependencies
 * [.NET 10 SDK/Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
