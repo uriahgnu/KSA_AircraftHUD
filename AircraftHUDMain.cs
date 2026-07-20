@@ -2,6 +2,7 @@
 using Brutal.Numerics;
 using KSA;
 using ModMenu;
+using ShaderExtensions;
 using StarMap.API;
 using System.Diagnostics;
 using System.Drawing;
@@ -38,6 +39,8 @@ namespace AircraftHUD
             Bottom,
             Center
         }
+
+        static bool debugAreas = false;
 
         static bool enabled = true;
         static bool settingsPageOn = false;
@@ -696,6 +699,7 @@ namespace AircraftHUD
         unsafe public void OnAfterUI(double dt)
         {
             ImGuiWindowFlags menuFlags = ImGuiWindowFlags.MenuBar;
+            KeyHash HudShader = KeyHash.Make("HudShader");
 
             // options page
             if (HUD.settingsPageOn)
@@ -843,6 +847,13 @@ namespace AircraftHUD
             ImGui.Begin("HUDFullscreenWindow", flags);
             ImDrawListPtr draw_list = ImGui.GetWindowDrawList();
 
+            SxImGui.CustomShader(HudShader);
+
+            // Workaround: It seems that ImGui window gets clipped, draw almost transparent rect to force full size
+            ImDrawListExtensions.AddRectFilled(draw_list, new float2(0f, 0f), window_size, new ImColor8(0, 0, 0, 1), 0);
+
+            if (debugAreas) { ImDrawListExtensions.AddRectFilled(draw_list, new float2(0f, 0f), window_size, new ImColor8(0, 0, 255, 100), 0); }
+
             // ALTITUDE (MSL / RADAR)
             bool useRadarAlt = false;
             float altitudeRadar = 0f;
@@ -986,6 +997,8 @@ namespace AircraftHUD
                 float PitchOffsetY = localCenter.Y + (DegToPx * (float)PitchDeg);
 
                 draw_list.PushClipRect(mainClipMin, mainClipMax, true);
+
+                if (debugAreas) { ImDrawListExtensions.AddRectFilled(draw_list, new float2(0f, 0f), window_size, new ImColor8(255, 0, 0, 100), 0); }
 
                 // FLIGHT VECTOR
                 float2 flightVecCenter = new float2(localCenter.X + (betaDeg * DegToPx), localCenter.Y - (alphaDeg * DegToPx));

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Assets>
+	<ImGuiShader Id="HudShader">
+	    <Vertex Id="ImGuiVertexPost" />
+		<Fragment Path="Shaders/HUD.frag" />
+	</ImGuiShader>
+</Assets>
