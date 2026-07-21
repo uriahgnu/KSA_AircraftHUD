@@ -1,5 +1,7 @@
-﻿ using Brutal.ImGuiApi;
+﻿using Brutal.ImGuiApi;
+using Brutal.Logging;
 using Brutal.Numerics;
+using HarmonyLib;
 using KSA;
 using ModMenu;
 using ShaderExtensions;
@@ -8,12 +10,18 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Numerics;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace AircraftHUD
 {
     [StarMapMod]
     public class HUD
     {
+        public static HUD Instance;
+
+        private Harmony harmony;
+
         enum DistanceUnits
         {
             Metric,
@@ -619,11 +627,34 @@ namespace AircraftHUD
             Console.WriteLine("AircraftHUD: Save Settings to " + path);
         }
 
+        //[StarMapImmediateLoad]
+        //public void Load(KSA.Mod mod)
+        //{
+        //    Instance = this;
+
+        //    harmony = new Harmony("AircraftHUD");
+
+        //    harmony.PatchAll(typeof(HUD).Assembly);
+
+        //    DefaultCategory.Log.Warning(
+        //        "AircraftHUD: Harmony patches loaded"
+        //    );
+        //}
 
         [StarMapImmediateLoad]
         unsafe public void Init(Mod definingMod)
         {
             Console.WriteLine("AircraftHUD: Init");
+
+            Instance = this;
+
+            harmony = new Harmony("AircraftHUD");
+
+            harmony.PatchAll(typeof(HUD).Assembly);
+
+            //DefaultCategory.Log.Warning(
+            //    "AircraftHUD: Harmony patches loaded"
+            //);
 
             ImGuiViewport * viewport = ImGui.GetMainViewport();
 
@@ -718,12 +749,10 @@ namespace AircraftHUD
             headingScaleClipMax = new float2(headingScaleMaxX, headingScalePosY + (localCenter.Y * 0.1f));
         }
 
-        [StarMapAfterGui]
-        unsafe public void OnAfterUI(double dt)
+        [StarMapBeforeGui]
+        unsafe public void DrawHudMenu(double dt)
         {
             ImGuiWindowFlags menuFlags = ImGuiWindowFlags.MenuBar;
-            KeyHash HudShader = KeyHash.Make("HudShader");
-
             // options page
             if (HUD.settingsPageOn)
             {
@@ -849,6 +878,13 @@ namespace AircraftHUD
 
                 ImGui.End();
             }
+        }
+
+        unsafe public void DrawHud(double dt)
+        {
+            //DefaultCategory.Log.Warning("AircraftHUD: DrawHud");
+
+            KeyHash HudShader = KeyHash.Make("HudShader");
 
             if (!HUD.enabled) { return; }
 
@@ -1195,6 +1231,17 @@ namespace AircraftHUD
 
             ImGui.PopFont();
             ImGui.End();
+        }
+    }
+
+    [HarmonyPatch(typeof(Program))]
+    internal static class ProgramPatches
+    {
+        [HarmonyPatch("OnFrameViewports")]
+        [HarmonyPostfix]
+        private static void AfterOnFrameViewports(double dtPlayer)
+        {
+            HUD.Instance?.DrawHud(dtPlayer);
         }
     }
 }
