@@ -566,7 +566,7 @@ namespace AircraftHUD
                     case "OrbitMode":
                         HUD.orbitMode = value == "1";
                         break;
-                    case "EfectsOutsideIVA":
+                    case "EffectsOutsideIVA":
                         HUD.effectsOutsideIVA = value == "1";
                         break;
                     case "DistanceUnits":
@@ -945,10 +945,6 @@ namespace AircraftHUD
             double gravity = GetGravity(controlledVehicle);
             float gForce = (float)(controlledVehicle.AccelerationBody.Length() - gravity) / 9.80665f;
 
-            // MACH
-            double speedOfSound = Math.Sqrt(1.4 * AtmospherePressure / AtmosphereDensity);
-            double mach = velocity / speedOfSound;
-
             // ATTITUDE
             double3 EulerRad = GetSurfaceAttitude(controlledVehicle);
             float RollDeg = AngleRadToDegClamped((float)EulerRad.X);
@@ -1044,6 +1040,10 @@ namespace AircraftHUD
 
             if (AtmosphereDensity > 0)
             {
+                // MACH
+                double speedOfSound = Math.Sqrt(1.4 * AtmospherePressure / AtmosphereDensity);
+                double mach = velocity / speedOfSound;
+
                 // bottom left
                 DrawTextAligned(draw_list, new float2(localCenter.X - textPosX2, localCenter.Y + (verticalScaleLenY * 1.25f)), color, "M " + FormatStringDecimal((float)mach, 1), TextAlignHoriz.Left);
                 DrawTextAligned(draw_list, new float2(localCenter.X - textPosX2, localCenter.Y + (verticalScaleLenY * 1.15f)), color, "a " + FormatStringDecimal(alphaDeg, 1), TextAlignHoriz.Left);
