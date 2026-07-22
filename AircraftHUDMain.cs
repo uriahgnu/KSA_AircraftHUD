@@ -257,8 +257,26 @@ namespace AircraftHUD
 
         public static string FormatStringPadded(float value, int padding = 2)
         {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+            {
+                DefaultCategory.Log.Warning($"AircraftHUD: FormatStringPadded received {value}");
+                return new string('-', padding);
+            }
+
+            if (value < int.MinValue || value > int.MaxValue)
+            {
+                DefaultCategory.Log.Warning($"AircraftHUD: FormatStringPadded out of range: {value}");
+                return new string('-', padding);
+            }
+
             int intVal = (int)Math.Round(value);
-            int len = Math.Abs(intVal).ToString().Length;
+
+            //int len = Math.Abs(intVal).ToString().Length;
+            string digits = intVal < 0
+            ? intVal.ToString().Substring(1)
+            : intVal.ToString();
+
+            int len = digits.Length;
 
             // if absolute char length less than/equal padding, zero-pad normally
             if (len <= padding)
@@ -1089,7 +1107,10 @@ namespace AircraftHUD
                     DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.25f)), debugColor, "mach", TextAlignHoriz.Right);
                     DrawTextAligned(draw_list, new float2(localCenter.X - textPosX3, localCenter.Y + (verticalScaleLenY * 1.15f)), debugColor, "alpha", TextAlignHoriz.Right);
                 }
+            }
 
+            if (altitude < 999999.0)
+            {
                 // ROLL / PITCH
                 float RollAngleSin = MathF.Sin((float)-EulerRad.X);
                 float RollAngleCos = MathF.Cos((float)-EulerRad.X);
