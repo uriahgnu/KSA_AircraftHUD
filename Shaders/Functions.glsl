@@ -74,8 +74,8 @@ vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, sampler2D dirtMask
     return color;
 }
 
-const int GaussianSamples = 32;      // Samples on each side
-const float GaussianSigma = 12.0;    // Gaussian weight falloff
+const int GaussianSamples = 48;      // Samples on each side
+const float GaussianSigma = 16.0;    // Gaussian weight falloff
 const float BlurRadius = 512.0;      // Blur radius in pixels
 const float BlurExponent = 2.0;     // 1=linear, 2=quadratic, 3=cubic
 
