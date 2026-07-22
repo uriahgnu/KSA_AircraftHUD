@@ -56,10 +56,11 @@ float RadialGradient(vec2 uv, vec2 texelSize)
     return clamp(mask, 0.0, 1.0);
 }
 
+const float brightness = 0.5;
 vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, sampler2D dirtMask)
 {
     float lum = Luminance(blur.rgb);
-	float lumMask = smoothstep(0.05, 0.5, lum);
+	float lumMask = smoothstep(0.02, 0.2, lum);
 
     float mask = RadialGradient(uv, texelSize);
 
@@ -67,9 +68,12 @@ vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, sampler2D dirtMask
 
 	dirt *= lumMask;
 
-    //color = blur;
-    color = mix(color, blur, mask + dirt);
-    color += dirt * (blur * 6.0);
+    float finalMask = clamp(mask + dirt, 0.0, 1.0);
+
+    color = mix(color, brightness * blur, finalMask);
+    color += dirt * (blur * 12.0);
+
+//    color = mix(vec4(0,0,1,1), vec4(1,0,0,1), finalMask);
 
     return color;
 }
@@ -147,6 +151,38 @@ vec3 RadialBlur(sampler2D source, vec2 uv, vec2 texelSize, vec2 radius, int samp
     }
 
     return color / max(totalWeight, 1e-5);
+}
+
+vec4 ChromaticAberration(sampler2D tex, vec2 uv, vec2 texelSize, float amount)
+{
+    // Optical center
+    vec2 dir = uv * 2.0 - 1.0;
+
+    // Aspect-correct so the aberration is circular
+    float aspect = texelSize.y / texelSize.x;
+    dir.x *= aspect;
+
+    float r = length(dir);
+
+    if (r < 1e-5)
+        return texture(tex, uv);
+
+    dir /= r;
+
+    // Normalize radius (0 center, 1 corners)
+    r /= length(vec2(aspect, 1.0));
+
+    // Smooth radial falloff
+    float strength = r * r;
+
+    // Offset in pixels
+    vec2 offset = dir * (amount * strength) * texelSize;
+
+    vec4 red   = texture(tex, uv + offset);
+    vec4 green = texture(tex, uv);
+    vec4 blue  = texture(tex, uv - offset);
+
+    return vec4(red.r, green.g, blue.b, green.a);
 }
 
 #endif

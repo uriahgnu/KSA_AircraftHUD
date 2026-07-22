@@ -22,11 +22,17 @@ void main()
 {
 	vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
 
-	// vec4 color = subpassLoad(Source);
-	vec4 color = texture(Source, Uv);
+	vec2 zoomUv = Uv - 0.5;
+	zoomUv *= 0.95;
+	zoomUv += 0.5;
 
-	vec2 curveUv = CurvedUV(Uv, -0.1, 1.12);
+	// vec4 color = subpassLoad(Source);
+	// vec4 color = texture(Source, Uv);
+	vec4 color = ChromaticAberration(Source, zoomUv, texelSize, -15.0);
+
+	vec2 curveUv = CurvedUV(zoomUv, -0.1, 1.12);
     vec4 original = texture(PreviousInput, curveUv);
+
     color = DirtMask(Uv, texelSize, original, color, dirtMask);
 
 	// RGB Blue Noise (STBN) LDR Dithering
