@@ -9,16 +9,20 @@ layout(set = 1, binding = 1) uniform sampler2D dirtMask;
 
 layout(location = 0) in vec2 Uv;
 
-// layout(push_constant, std430) uniform BlurParams {
-//   int radius;
-//   float weights[21];
-// } blur;
+layout(push_constant, std430) uniform Params {
+   int enabled;
+   float frame;
+} pp;
 
 void main()
 {
-    vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
     vec2 curveUv = CurvedUV(Uv, -0.1, 1.12);
-    vec2 refractedUv = RefractionUVs(curveUv, texelSize, dirtMask).rg;
-    vec4 blurred = GaussianBlur(Source, refractedUv, texelSize, vec2(1.0, 0.0));
-    outColor = blurred;
+    if (pp.enabled == 1)
+    {
+        vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
+        vec2 refractedUv = RefractionUVs(curveUv, texelSize, dirtMask).rg;
+        vec4 blurred = GaussianBlur(Source, refractedUv, texelSize, vec2(1.0, 0.0));
+        outColor = blurred;
+    }
+    else { outColor = texture(Source, curveUv); }
 }

@@ -25,21 +25,20 @@ void main()
 	if (pp.enabled == 1)
 	{
 		vec2 zoomUv = Uv - 0.5;
-		zoomUv *= 0.95;
+		zoomUv *= 0.975;
 		zoomUv += 0.5;
 
 		vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
 
-		// vec4 color = subpassLoad(Source);
-		// vec4 color = texture(Source, Uv);
 		color = ChromaticAberration(Source, zoomUv, texelSize, -15.0);
 
 		vec2 curveUv = CurvedUV(zoomUv, -0.1, 1.12);
 		vec4 refracted = RefractionUVs(curveUv, texelSize, dirtMask);
 
 		vec4 original = texture(PreviousInput, refracted.rg);
-
 		color = DirtMask(Uv, texelSize, original, color, refracted.b);
+
+//		color = mix(vec4(0,0,0,1), color, refracted.a);
 
 		outColor = color;
 	}

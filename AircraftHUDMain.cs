@@ -57,7 +57,9 @@ namespace AircraftHUD
         static bool orbitMode = true;
         static bool effectsOutsideIVA = false;
 
-        public static KeyHash PPBufferHash = KeyHash.Make("PPPushConstantsBuffer");
+        public static KeyHash PPBuffer0Hash = KeyHash.Make("PPPushConstantsBuffer0");
+        public static KeyHash PPBuffer1Hash = KeyHash.Make("PPPushConstantsBuffer1");
+        public static KeyHash PPBuffer2Hash = KeyHash.Make("PPPushConstantsBuffer2");
         public float FrameTime = 0f;
 
         static DistanceUnits CurrentDistUnits { get; set; } = DistanceUnits.Metric;
@@ -893,9 +895,17 @@ namespace AircraftHUD
             {
                 //CurrentProfile.FilmGrainPreTime += (float)dt * CurrentProfile.FilmGrainPreTimeMultiplier * (CurrentProfile.FilmGrainPreTimeWarpMultiplier ? (float)Universe.SimulationSpeed : 1f);
 
-                Span<PPPushConstantsBuffer> PP = PPPushConstantsBuffer.LookupSpan(PPBufferHash);
-                PP[0].enabled = enabled;
-                PP[0].frame = frame;
+                Span<PPPushConstantsBuffer> PP0 = PPPushConstantsBuffer.LookupSpan(PPBuffer0Hash);
+                PP0[0].enabled = enabled;
+                PP0[0].frame = frame;
+
+                Span<PPPushConstantsBuffer> PP1 = PPPushConstantsBuffer.LookupSpan(PPBuffer1Hash);
+                PP1[0].enabled = enabled;
+                PP1[0].frame = frame;
+
+                Span<PPPushConstantsBuffer> PP2 = PPPushConstantsBuffer.LookupSpan(PPBuffer2Hash);
+                PP2[0].enabled = enabled;
+                PP2[0].frame = frame;
             }
         }
 

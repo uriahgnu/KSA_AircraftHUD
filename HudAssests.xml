@@ -5,12 +5,15 @@
 		<TextureBinding Path="Textures/stbn_vec3_128x128x64.png" />
 	</PostProcessingShader>-->
 	<PostProcessingShader Id="GlassBlurH" Path="Shaders/GaussianBlurH.frag" RenderPassId="62" RequiresUniqueRenderpass="true" >
+		<PPPushConstantsBufferAsset Id="PPPushConstantsBuffer0" Size="1" />
 		<TextureBinding Path="Textures/DirtMask.png" />
 	</PostProcessingShader>
-	<PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" />
+	<PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" >
+		<PPPushConstantsBufferAsset Id="PPPushConstantsBuffer1" Size="1" />
+	</PostProcessingShader>
 	<PostProcessingShader Id="PostProcess" Path="Shaders/PostProcess.frag" RenderPassId="64" SubpassId="0" >
+		<PPPushConstantsBufferAsset Id="PPPushConstantsBuffer2" Size="1" />
 		<PostProcessingInputReference RenderPassId="62" SubpassId="0" />
-		<PPPushConstantsBufferAsset Id="PPPushConstantsBuffer" Size="1" />
 		<TextureBinding Path="Textures/stbn_vec3_128x128x64.png" />
 		<TextureBinding Path="Textures/DirtMask.png" />
 	</PostProcessingShader>

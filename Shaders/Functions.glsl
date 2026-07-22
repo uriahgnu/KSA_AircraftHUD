@@ -102,8 +102,6 @@ vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, float dirt)
     color = mix(color, brightness * blur, finalMask);
     color += dirt * (blur * 12.0);
 
-//    color = mix(vec4(0,0,1,1), vec4(1,0,0,1), finalMask);
-
     return color;
 }
 
