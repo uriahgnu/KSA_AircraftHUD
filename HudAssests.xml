@@ -20,7 +20,7 @@
 
 	<ImGuiShader Id="HudShader">
 	    <Vertex Id="ImGuiVertexPost" />
-		<Fragment Path="Shaders/HUD.frag" >
+		<Fragment Path="Shaders/UI_PP_HUD.frag" >
 			<AircraftHUDBufferAsset Id="HudTestBuffer" Size="1" />
 		</Fragment>
 	</ImGuiShader>

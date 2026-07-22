@@ -48,10 +48,7 @@ void main()
 	}
 
 	// RGB Blue Noise (STBN) LDR Dithering
-	vec3 noise = ScreenNoise(noiseTex, pp.frame).rgb;
-	noise -= 0.5; // -0.5 to 0.5 range
-	noise *= 0.25; // strength: 0.15
-	color += vec4(noise, 1) * color;
+	color = BlueNoiseDither(color, noiseTex, pp.frame, 0.25);
 
 	outColor = color;
 }

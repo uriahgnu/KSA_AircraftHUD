@@ -1,5 +1,5 @@
-#ifndef HUD_FUNC_INCLUDED
-#define HUD_FUNC_INCLUDED
+#ifndef ACF_HUD_FUNC_INCLUDED
+#define ACF_HUD_FUNC_INCLUDED
 
 const float PI = 3.14159265359;
 
@@ -19,7 +19,7 @@ vec3 ScreenNoise_DEPRECATED(sampler2D tex, vec2 size, float time)
 	return texture(tex, UvFrac).rgb;
 }
 
-vec3 ScreenNoise(sampler2D tex, float frame)
+vec4 BlueNoiseDither(vec4 color, sampler2D tex, float frame, float str)
 {
     ivec2 pixel = ivec2(gl_FragCoord.xy);
 
@@ -30,7 +30,13 @@ vec3 ScreenNoise(sampler2D tex, float frame)
     uv.x = (float(pixel.x & 127) + 0.5) / 128.0;
     uv.y = (float((pixel.y & 127) + f * 128) + 0.5) / 8192.0;
 
-    return texture(tex, uv).rgb;
+    vec3 noise = texture(tex, uv).rgb;
+
+    noise -= 0.5;
+	noise *= str;
+	color += vec4(noise, 1) * color;
+
+    return color;
 }
 
 const float curveStrength = -0.15; // -0.1
