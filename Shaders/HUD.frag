@@ -142,7 +142,7 @@ vec4 SpiralGlow(sampler2D tex, vec2 uv, vec2 texelSize, float radius, int sample
 
 void main()
 {
-    vec2 uv = CurvedUV(In.Uv, UvRect, -0.1, 1.12);
+    vec2 uv = CurvedUV(In.Uv, UvRect, -0.15, 1.15);
     vec4 color = ChromaticAberration(imguiTex, uv, UvRect, -0.003);
     // vec4 color = textureLod(imguiTex, uv, 0);
     

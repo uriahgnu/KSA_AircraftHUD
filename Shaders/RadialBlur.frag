@@ -37,7 +37,7 @@ void main()
         32,
         noise.rg);
 
-//    outColor = vec4(blurred, 1);
-    outColor = DirtMask(Uv, texelSize, original, vec4(blurred, 1), dirtTex);
+    outColor = vec4(blurred, 1);
+//    outColor = DirtMask(Uv, texelSize, original, vec4(blurred, 1), dirtTex);
 //	outColor = vec4(noise,1);
 }

@@ -19,17 +19,19 @@ vec3 ScreenNoise(sampler2D tex, vec2 size, float time)
 	return texture(tex, UvFrac).rgb;
 }
 
+const float curveStrength = -0.15; // -0.1
+const float curveScale = 1.15; // 1.12
 vec2 CurvedUV(vec2 uv, float strength, float scale)
 {
     // Center at (-1..1)
     vec2 p = uv * 2.0 - 1.0;
 
     // Scale around the center
-    p *= scale;
+    p *= curveScale;
 
     // Barrel distortion
     float r2 = dot(p, p);
-    p *= 1.0 + strength * r2;
+    p *= 1.0 + curveStrength * r2;
 
     // Back to 0-1
     return p * 0.5 + 0.5;
@@ -56,15 +58,28 @@ float RadialGradient(vec2 uv, vec2 texelSize)
     return clamp(mask, 0.0, 1.0);
 }
 
+const float RefractionStrength = 50.0;
+
+// normal.x, normal.y, dirt, alpha
+vec4 RefractionUVs(vec2 uv, vec2 texelSize, sampler2D dirtMask)
+{
+	vec4 dirtMaskRGBA = texture(dirtMask, uv);
+
+    // tangent-space normal
+    vec2 n = dirtMaskRGBA.rg * 2.0 - 1.0;
+    vec2 refractOffset = n * RefractionStrength * texelSize;
+    vec2 refractedUv = uv + refractOffset;
+
+    return vec4(refractedUv, dirtMaskRGBA.b, dirtMaskRGBA.a);
+}
+
 const float brightness = 0.5;
-vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, sampler2D dirtMask)
+vec4 DirtMask(vec2 uv, vec2 texelSize, vec4 color, vec4 blur, float dirt)
 {
     float lum = Luminance(blur.rgb);
 	float lumMask = smoothstep(0.02, 0.2, lum);
 
     float mask = RadialGradient(uv, texelSize);
-
-	float dirt = texture(dirtMask, uv).r;
 
 	dirt *= lumMask;
 

@@ -31,9 +31,11 @@ void main()
 	vec4 color = ChromaticAberration(Source, zoomUv, texelSize, -15.0);
 
 	vec2 curveUv = CurvedUV(zoomUv, -0.1, 1.12);
-    vec4 original = texture(PreviousInput, curveUv);
+	vec4 refracted = RefractionUVs(curveUv, texelSize, dirtMask);
 
-    color = DirtMask(Uv, texelSize, original, color, dirtMask);
+    vec4 original = texture(PreviousInput, refracted.rg);
+
+    color = DirtMask(Uv, texelSize, original, color, refracted.b);
 
 	// RGB Blue Noise (STBN) LDR Dithering
 	vec3 noise = ScreenNoise(noiseTex, vec2(128.0, 8192.0), 0.0).rgb;
