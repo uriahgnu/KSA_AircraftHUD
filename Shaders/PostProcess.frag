@@ -12,35 +12,46 @@ layout(set = 1, binding = 3) uniform sampler2D dirtMask;
 
 layout(location = 0) in vec2 Uv;
 
+layout(push_constant, std430) uniform Params {
+   int enabled;
+   float frame;
+} pp;
 
-// layout(push_constant, std430) uniform BlurParams {
-//   int radius;
-//   float weights[21];
-// } blur;
+const float Enabled = 1.0;
 
 void main()
 {
-	vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
+	vec4 color;
+	if (pp.enabled == 1)
+	{
+		vec2 zoomUv = Uv - 0.5;
+		zoomUv *= 0.95;
+		zoomUv += 0.5;
 
-	vec2 zoomUv = Uv - 0.5;
-	zoomUv *= 0.95;
-	zoomUv += 0.5;
+		vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
 
-	// vec4 color = subpassLoad(Source);
-	// vec4 color = texture(Source, Uv);
-	vec4 color = ChromaticAberration(Source, zoomUv, texelSize, -15.0);
+		// vec4 color = subpassLoad(Source);
+		// vec4 color = texture(Source, Uv);
+		color = ChromaticAberration(Source, zoomUv, texelSize, -15.0);
 
-	vec2 curveUv = CurvedUV(zoomUv, -0.1, 1.12);
-	vec4 refracted = RefractionUVs(curveUv, texelSize, dirtMask);
+		vec2 curveUv = CurvedUV(zoomUv, -0.1, 1.12);
+		vec4 refracted = RefractionUVs(curveUv, texelSize, dirtMask);
 
-    vec4 original = texture(PreviousInput, refracted.rg);
+		vec4 original = texture(PreviousInput, refracted.rg);
 
-    color = DirtMask(Uv, texelSize, original, color, refracted.b);
+		color = DirtMask(Uv, texelSize, original, color, refracted.b);
+
+		outColor = color;
+	}
+	else
+	{
+		color = texture(PreviousInput, Uv);
+	}
 
 	// RGB Blue Noise (STBN) LDR Dithering
-	vec3 noise = ScreenNoise(noiseTex, vec2(128.0, 8192.0), 0.0).rgb;
+	vec3 noise = ScreenNoise(noiseTex, pp.frame).rgb;
 	noise -= 0.5; // -0.5 to 0.5 range
-	noise *= 0.15; // strength
+	noise *= 0.25; // strength: 0.15
 	color += vec4(noise, 1) * color;
 
 	outColor = color;

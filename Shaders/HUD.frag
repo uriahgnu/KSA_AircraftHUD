@@ -12,13 +12,17 @@ layout(location = 0) in struct {
 layout(location = 4) flat in vec4 PxRect; // bounding pixel rect for window
 layout(location = 8) flat in vec4 UvRect; // bounding uv rect for window
 
+layout(set = 1, binding = 0) uniform HudTestBuffer {
+  float BufferValue1;
+};
+
 // TO DO: expose params to C#
 int blurRadius = 10;
 int blurSpread = 5;
 float threshold = 0.2;
 float intensity = 2.0;
 
-vec2 CurvedUV(vec2 uv, vec4 uvRect, float strength, float scale)
+vec2 CurvedUV_UI(vec2 uv, vec4 uvRect, float strength, float scale)
 {
     vec2 local = (uv - uvRect.xy) / (uvRect.zw - uvRect.xy);
 
@@ -44,7 +48,7 @@ vec4 BrightSample(sampler2D tex, vec2 uv, float threshold)
     return vec4(c.rgb * mask, c.a * mask);
 }
 
-vec4 ChromaticAberration(sampler2D tex, vec2 uv, vec4 uvRect, float amount)
+vec4 ChromaticAberrationUI(sampler2D tex, vec2 uv, vec4 uvRect, float amount)
 {
     vec2 local = (uv - uvRect.xy) / (uvRect.zw - uvRect.xy);
     vec2 dir = local * 2.0 - 1.0;
@@ -75,7 +79,7 @@ vec4 ChromaticAberration(sampler2D tex, vec2 uv, vec4 uvRect, float amount)
     return vec4(color, alpha);
 }
 
-vec4 GaussianBlur(sampler2D tex, vec2 uv, vec2 texelSize, int radius, int sigma, float threshold)
+vec4 GaussianBlurUI(sampler2D tex, vec2 uv, vec2 texelSize, int radius, int sigma, float threshold)
 {
     vec4 result = vec4(0.0);
 
@@ -102,7 +106,7 @@ vec4 GaussianBlur(sampler2D tex, vec2 uv, vec2 texelSize, int radius, int sigma,
     return result / weightSum;
 }
 
-vec4 SpiralGlow(sampler2D tex, vec2 uv, vec2 texelSize, float radius, int samples, float threshold)
+vec4 SpiralGlowUI(sampler2D tex, vec2 uv, vec2 texelSize, float radius, int samples, float threshold)
 {
     vec4 result = vec4(0.0);
 
@@ -142,13 +146,14 @@ vec4 SpiralGlow(sampler2D tex, vec2 uv, vec2 texelSize, float radius, int sample
 
 void main()
 {
-    vec2 uv = CurvedUV(In.Uv, UvRect, -0.15, 1.15);
-    vec4 color = ChromaticAberration(imguiTex, uv, UvRect, -0.003);
-    // vec4 color = textureLod(imguiTex, uv, 0);
+    vec2 curvedUv = CurvedUV_UI(In.Uv, UvRect, -0.15, 1.15);
+    vec4 color = ChromaticAberrationUI(imguiTex, curvedUv, UvRect, -0.003);
     
     vec2 texelSize = 1.0 / vec2(textureSize(imguiTex, 0));
-    // vec4 glow = GaussianBlur(imguiTex, uv, texelSize, blurRadius, blurSpread, threshold);
-    vec4 glow = SpiralGlow(imguiTex, uv, texelSize,
+
+//    vec4 glow = GaussianBlur(imguiTex, curvedUv, texelSize, blurRadius, blurSpread, threshold);
+
+    vec4 glow = SpiralGlowUI(imguiTex, curvedUv, texelSize,
         20.0,   // radius in pixels
         128,     // samples
         threshold
@@ -156,4 +161,7 @@ void main()
     color += glow * intensity;
 
     outColor = vec4(color.rgb, color.a);
+
+//    vec4 color = textureLod(imguiTex, curvedUv, 0);
+//    outColor = vec4(vec3(1.0,0.0,0.0), color.a);
 }

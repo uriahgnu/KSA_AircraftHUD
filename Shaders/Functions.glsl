@@ -8,15 +8,29 @@ float Luminance(vec3 c)
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
-vec3 ScreenNoise(sampler2D tex, vec2 size, float time)
+vec3 ScreenNoise_DEPRECATED(sampler2D tex, vec2 size, float time)
 {
-    size.y + (fract(time) * 63);
+    size.y += (fract(time) * 63);
 	vec2 screenUv = gl_FragCoord.xy / size;
 
 	vec2 UvFrac = fract(screenUv);
 	vec4 UvColor = vec4(UvFrac.x, UvFrac.y, 0, 1);
 
 	return texture(tex, UvFrac).rgb;
+}
+
+vec3 ScreenNoise(sampler2D tex, float frame)
+{
+    ivec2 pixel = ivec2(gl_FragCoord.xy);
+
+    int f = int(frame * 60.0) & 63;
+
+    vec2 uv;
+
+    uv.x = (float(pixel.x & 127) + 0.5) / 128.0;
+    uv.y = (float((pixel.y & 127) + f * 128) + 0.5) / 8192.0;
+
+    return texture(tex, uv).rgb;
 }
 
 const float curveStrength = -0.15; // -0.1

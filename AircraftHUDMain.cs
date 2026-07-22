@@ -57,6 +57,9 @@ namespace AircraftHUD
         static bool orbitMode = true;
         static bool effectsOutsideIVA = false;
 
+        public static KeyHash PPBufferHash = KeyHash.Make("PPPushConstantsBuffer");
+        public float FrameTime = 0f;
+
         static DistanceUnits CurrentDistUnits { get; set; } = DistanceUnits.Metric;
         static SpeedUnits CurrentSpeedUnits { get; set; } = SpeedUnits.Metric;
 
@@ -645,20 +648,6 @@ namespace AircraftHUD
             Console.WriteLine("AircraftHUD: Save Settings to " + path);
         }
 
-        //[StarMapImmediateLoad]
-        //public void Load(KSA.Mod mod)
-        //{
-        //    Instance = this;
-
-        //    harmony = new Harmony("AircraftHUD");
-
-        //    harmony.PatchAll(typeof(HUD).Assembly);
-
-        //    DefaultCategory.Log.Warning(
-        //        "AircraftHUD: Harmony patches loaded"
-        //    );
-        //}
-
         [StarMapImmediateLoad]
         unsafe public void Init(Mod definingMod)
         {
@@ -898,11 +887,21 @@ namespace AircraftHUD
             }
         }
 
+        public void SetPostProcess(int enabled, float frame)
+        {
+            if (PPPushConstantsBuffer.LookupSpan != null)
+            {
+                //CurrentProfile.FilmGrainPreTime += (float)dt * CurrentProfile.FilmGrainPreTimeMultiplier * (CurrentProfile.FilmGrainPreTimeWarpMultiplier ? (float)Universe.SimulationSpeed : 1f);
+
+                Span<PPPushConstantsBuffer> PP = PPPushConstantsBuffer.LookupSpan(PPBufferHash);
+                PP[0].enabled = enabled;
+                PP[0].frame = frame;
+            }
+        }
+
         unsafe public void DrawHud(double dt)
         {
             //DefaultCategory.Log.Warning("AircraftHUD: DrawHud");
-
-            KeyHash HudShader = KeyHash.Make("HudShader");
 
             if (!HUD.enabled) { return; }
 
@@ -959,7 +958,28 @@ namespace AircraftHUD
             ImGui.Begin("HUDFullscreenWindow", flags);
             ImDrawListPtr draw_list = ImGui.GetWindowDrawList();
 
-            if (CamMode.Equals(CameraMode.IVA) || effectsOutsideIVA) { SxImGui.CustomShader(HudShader); }
+            KeyHash HudShader = KeyHash.Make("HudShader");
+
+            FrameTime += (float)dt;
+
+            if (CamMode.Equals(CameraMode.IVA) || effectsOutsideIVA)
+            {
+                SxImGui.CustomShader(HudShader);
+                SetPostProcess(1, FrameTime);
+            }
+            else
+            {
+                SetPostProcess(0, FrameTime);
+            }
+
+            //if (AircraftHUDBuffer.LookupSpan != null)
+            //{
+            //    float value = controlledVehicle.GetManualThrottle();
+            //    KeyHash testBuffer = KeyHash.Make("HudTestBuffer");
+            //    Span<AircraftHUDBuffer> bufferSpan = AircraftHUDBuffer.LookupSpan(testBuffer);
+            //    bufferSpan[0].V1 = value;
+            //    DefaultCategory.Log.Warning($"AircraftHUD: Throttle: {value}");
+            //}
 
             // Workaround: It seems that ImGui window gets clipped, draw almost transparent rect to force full size
             ImDrawListExtensions.AddRectFilled(draw_list, new float2(0f, 0f), window_size, new ImColor8(0, 0, 0, 1), 0);
@@ -1258,7 +1278,7 @@ namespace AircraftHUD
     [HarmonyPatch(typeof(Program))]
     internal static class ProgramPatches
     {
-        [HarmonyPatch("OnFrameViewports")]
+        [HarmonyPatch("OnFrameEditor")]
         [HarmonyPostfix]
         private static void AfterOnFrameViewports(double dtPlayer)
         {

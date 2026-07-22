@@ -9,30 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="StarMap.API" Version="0.3.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Brutal.Core.Common">
-      <HintPath>..\..\Kitten Space Agency\Brutal.Core.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Brutal.Core.Numerics">
-      <HintPath>..\..\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="Brutal.ImGui">
-      <HintPath>..\..\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
-		<Private>false</Private>
-    </Reference>
-    <Reference Include="KSA">
-      <HintPath>..\..\Kitten Space Agency\KSA.dll</HintPath>
-		<Private>false</Private>
-    </Reference>
-	  <Reference Include="ModMenu.Attributes">
-		  <HintPath>ModMenu.Attributes.dll</HintPath>
-	  </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Fonts\HornetDisplay-Bold.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

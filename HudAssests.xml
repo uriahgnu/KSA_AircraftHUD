@@ -10,12 +10,15 @@
 	<PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" />
 	<PostProcessingShader Id="PostProcess" Path="Shaders/PostProcess.frag" RenderPassId="64" SubpassId="0" >
 		<PostProcessingInputReference RenderPassId="62" SubpassId="0" />
+		<PPPushConstantsBufferAsset Id="PPPushConstantsBuffer" Size="1" />
 		<TextureBinding Path="Textures/stbn_vec3_128x128x64.png" />
 		<TextureBinding Path="Textures/DirtMask.png" />
 	</PostProcessingShader>
 
 	<ImGuiShader Id="HudShader">
 	    <Vertex Id="ImGuiVertexPost" />
-		<Fragment Path="Shaders/HUD.frag" />
+		<Fragment Path="Shaders/HUD.frag" >
+			<AircraftHUDBufferAsset Id="HudTestBuffer" Size="1" />
+		</Fragment>
 	</ImGuiShader>
 </Assets>
