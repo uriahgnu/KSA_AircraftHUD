@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Assets>
-	/// <PostProcessingShader Id="GlassBlurH" Path="Shaders/GaussianBlurH.frag" RenderPassId="62" RequiresUniqueRenderpass="true" />
-	/// <PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" />
-	/// <PostProcessingShader Id="GlassEffects" Path="Shaders/GlassEffects.frag" RenderPassId="64" SubpassId="0" />
+	<!--<PostProcessingShader Id="GlassBlur" Path="Shaders/RadialBlur.frag" RenderPassId="62" RequiresUniqueRenderpass="true" >
+		<TextureBinding Path="Textures/DirtMask.png" />
+		<TextureBinding Path="Textures/stbn_vec3_128x128x64.png" />
+	</PostProcessingShader>-->
+	<PostProcessingShader Id="GlassBlurH" Path="Shaders/GaussianBlurH.frag" RenderPassId="62" RequiresUniqueRenderpass="true" />
+	<PostProcessingShader Id="GlassBlurV" Path="Shaders/GaussianBlurV.frag" RenderPassId="63" RequiresUniqueRenderpass="true" >
+		<PostProcessingInputReference RenderPassId="62" SubpassId="0" />
+		<TextureBinding Path="Textures/DirtMask.png" />
+	</PostProcessingShader>
+	<PostProcessingShader Id="PostProcess" Path="Shaders/PostProcess.frag" RenderPassId="64" SubpassId="0" >
+		<TextureBinding Path="Textures/stbn_vec3_128x128x64.png" />
+	</PostProcessingShader>
+
 	<ImGuiShader Id="HudShader">
 	    <Vertex Id="ImGuiVertexPost" />
 		<Fragment Path="Shaders/HUD.frag" />

@@ -13,17 +13,10 @@ layout(location = 0) in vec2 Uv;
 //   float weights[21];
 // } blur;
 
-const float bright = 0.05;
-
 void main()
 {
     vec2 texelSize = 1.0 / vec2(textureSize(Source, 0));
-
-    vec2 uv = CurvedUV(Uv, -0.1, 1.12);
-
-    vec4 original = texture(Source, uv);
-    vec4 blurred = bright * GaussianBlur(Source, uv, texelSize, vec2(1.0, 0.0));
-
-    float mask = RadialGradient(Uv, texelSize);
-    outColor = mix(original, blurred, mask);
+    vec2 curveUv = CurvedUV(Uv, -0.1, 1.12);
+    vec4 blurred = GaussianBlur(Source, curveUv, texelSize, vec2(1.0, 0.0));
+    outColor = blurred;
 }

@@ -1,5 +1,7 @@
 #version 450 core
 
+#include "Functions.glsl"
+
 layout(location = 0) out vec4 outColor;
 
 layout(set=0, binding=0) uniform sampler2D imguiTex; // rendered ImGui Window
@@ -29,11 +31,6 @@ vec2 CurvedUV(vec2 uv, vec4 uvRect, float strength, float scale)
     local = p * 0.5 + 0.5;
 
     return uvRect.xy + local * (uvRect.zw - uvRect.xy);
-}
-
-float Luminance(vec3 c)
-{
-    return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
 vec4 BrightSample(sampler2D tex, vec2 uv, float threshold)

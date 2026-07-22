@@ -55,7 +55,7 @@ namespace AircraftHUD
         static bool symbology = false;
         static bool settingsPageOn = false;
         static bool orbitMode = true;
-        static bool effectsOutsideIVA = true;
+        static bool effectsOutsideIVA = false;
 
         static DistanceUnits CurrentDistUnits { get; set; } = DistanceUnits.Metric;
         static SpeedUnits CurrentSpeedUnits { get; set; } = SpeedUnits.Metric;
