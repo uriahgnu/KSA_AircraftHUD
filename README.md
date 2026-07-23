@@ -1,19 +1,19 @@
 # 🚀KSA AircraftHUD v0.2.1
 
-Kitten Space Agency Version: `ksa_v2026.7.6.4939`
+Kitten Space Agency Version: `ksa_v2026.7.8.4980`
 
 Download KSA: [https://ahwoo.com/app/100000/kitten-space-agency](https://ahwoo.com/app/100000/kitten-space-agency)
 
 Forum: [https://forums.ahwoo.com/threads/aircraft-hud.618/](https://forums.ahwoo.com/threads/aircraft-hud.618/)
 
 ### Mod Dependencies
-* [StarMap](https://github.com/StarMapLoader/StarMap/releases)
-* [ModMenu](https://github.com/MrJeranimo/ModMenu/releases)
-* [KittenExtensions](https://github.com/tsholmes/KittenExtensions/releases)
-* [ShaderExtensions](https://github.com/AMPW-german/ShaderExtensions/releases)
+* [StarMap v0.4.5](https://github.com/StarMapLoader/StarMap/releases)
+* [ModMenu v0.2.1](https://github.com/MrJeranimo/ModMenu/releases)
+* [KittenExtensions v0.4.0](https://github.com/tsholmes/KittenExtensions/releases)
+* [ShaderExtensions v0.4.0](https://github.com/AMPW-german/ShaderExtensions/releases)
 
 ### Recommended Mods
-* [KSA G Effects](https://github.com/AMPW-german/KSAGEffects/releases)
+* [KSA G Effects by AMPW](https://github.com/AMPW-german/KSAGEffects/releases)
 
 ### Installation
 * Download the latest release of StarMap, follow the instructions to install until you are able to launch KSA from StarMap.exe
@@ -34,6 +34,8 @@ Alternatively AircraftHUD is also available from [CKAN-KSA (Early Beta)](https:/
 
 ### Credits
 🚀Massive thanks to RocketWerkz, Dean Hall and all of the devs for making KSA possible!
+
+Special thanks to [AMPW](https://github.com/AMPW-german) for helping with the new post process shaders.
 
 Also, thanks to the many community members who helped and contributed to making this mod possible in one way or another, including:
 * Lexi for making the original [KSAModLoader](https://github.com/cheese3660/KsaLoader)
