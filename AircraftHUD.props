@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ModName>AircraftHUD</ModName>
-    <KSADir>E:\\Games\\Kitten Space Agency\\</KSADir>
+    <KSADir>C:\\Program Files\\Ahwoo\\Games\\Kitten Space Agency\\</KSADir>
     <KSAContent>$(KSADir)Content\</KSAContent>
     <ModDir>$(KSAContent)$(ModName)\</ModDir>
 	<ModsDir>$(UserProfile)\Documents\My Games\Kitten Space Agency\mods\</ModsDir>

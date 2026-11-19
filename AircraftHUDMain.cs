@@ -3,6 +3,7 @@ using Brutal.Logging;
 using Brutal.Numerics;
 using HarmonyLib;
 using KSA;
+using Microsoft.VisualBasic;
 using ModMenu;
 using ShaderExtensions;
 using StarMap.API;
@@ -18,9 +19,9 @@ namespace AircraftHUD
     [StarMapMod]
     public class HUD
     {
-        public static HUD Instance;
+        public static HUD? Instance;
 
-        private Harmony harmony;
+        private Harmony? harmony;
 
         enum DistanceUnits
         {
@@ -150,6 +151,8 @@ namespace AircraftHUD
         private float2 headingScaleClipMin;
         private float2 headingScaleClipMax;
 
+        private string? dllDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
         [ModMenuEntry("Aircraft HUD")]
         public static void CreateModMenu()
         {
@@ -249,12 +252,9 @@ namespace AircraftHUD
         {
             if (vehicle.Orbit.Parent is Celestial celestial)
             {
-                double r = vehicle.DistanceTo(celestial);
+                // This computes the local gravitational acceleration at the vehicle's current position.
+                return vehicle.PhysicsEnvironment.ComputeGravitationMagnitude(vehicle.Orbit.StateVectors.PositionCci.Length());
 
-                if (r < 1.0)
-                    return 0; // safety
-
-                return (G * celestial.Mass) / (r * r);
             }
             else
             {
@@ -674,9 +674,7 @@ namespace AircraftHUD
 
             ImGuiViewport * viewport = ImGui.GetMainViewport();
 
-            string dllDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            LoadHudIni(Path.Combine(dllDir, "hud.ini"));
+            if (dllDir != null) LoadHudIni(Path.Combine(dllDir, "hud.ini"));
 
             // most params are scaled by center.Y
             center = new float2(viewport->Pos.X + viewport->Size.X * 0.5f, viewport->Pos.Y + viewport->Size.Y * 0.5f);
@@ -703,12 +701,15 @@ namespace AircraftHUD
                 ImGuiIO* io = ImGui.GetIO();
                 ImFontAtlasPtr atlas = io->Fonts;
 
-                string fontPathStr = Path.Combine(dllDir, fontFile);
-                if (File.Exists(fontPathStr))
+                if (dllDir != null)
                 {
-                    ImString fontPath = new ImString(fontPathStr);
-                    hudFont = atlas.AddFontFromFileTTF(fontPath, fontSizeLrg);
-                    fontLoaded = true;
+                    string fontPathStr = Path.Combine(dllDir, fontFile);
+                    if (File.Exists(fontPathStr))
+                    {
+                        ImString fontPath = new ImString(fontPathStr);
+                        hudFont = atlas.AddFontFromFileTTF(fontPath, fontSizeLrg);
+                        fontLoaded = true;
+                    }
                 }
             }
 
@@ -925,8 +926,8 @@ namespace AircraftHUD
 
                 if (ImGui.Button("Save HUD Settings"))
                 {
-                    string dllDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                    SaveHudIni(Path.Combine(dllDir, "hud.ini"));
+                    if (dllDir != null)
+                        SaveHudIni(Path.Combine(dllDir, "hud.ini"));
                 }
 
                 ImGui.End();
@@ -963,7 +964,7 @@ namespace AircraftHUD
             CameraMode CamMode = Program.GetCameraMode();
             if (CamMode.Equals(CameraMode.Map) || CamMode.Equals(CameraMode.Free)) { return; }
 
-            Vehicle controlledVehicle = Program.ControlledVehicle;
+            Vehicle? controlledVehicle = Program.ControlledVehicle;
             if (controlledVehicle == null) { return; }
 
             Celestial parentBody = (Celestial)controlledVehicle.Orbit.Parent;
@@ -972,27 +973,15 @@ namespace AircraftHUD
             string DistanceUnits = GetDistanceUnitsString();
 
             //float parentSOI = (float)controlledVehicle.Parent.SphereOfInfluence;
+
+            // GetBarometricAltitude actually goes off coordinate systems not pressure directly
             float altitude = (float)controlledVehicle.GetBarometricAltitude();
             if (altitude > 999999) { return; }
 
             // ATMOSPHERE
-            PhysicalAtmosphereReference atmosphere;
-            double AtmosphereDensity = 0f; // kg / m^3
-            double AtmospherePressure = 0f;
-            //double AtmosphereQbar = 0f;
 
-            AtmosphereReference atmosphereRef = parentBody.BodyTemplate.AtmosphereReference;
-            if (atmosphereRef != null)
-            {
-                atmosphere = atmosphereRef.Physical;
-                if (atmosphere != null)
-                {
-                    AtmosphereDensity = atmosphere.GetAtmosphericDensityAtAltitude(altitude);
-                    AtmospherePressure = atmosphere.GetAtmosphericPressureAtAltitude(altitude);
-                }
-                else { Console.WriteLine("AircraftHUD: PhysicalAtmosphereReference is invalid!"); }
-            }
-            else { Console.WriteLine("AircraftHUD: AtmosphereReference is invalid!"); }
+            // If atmosphere turns out to be null later, features using it just don't get executed.
+            PhysicalAtmosphere? atmosphere = parentBody.GetPhysicalAtmosphere();
 
             // CREATE WINDOW
             ImGuiViewport* viewport = ImGui.GetMainViewport();
@@ -1071,7 +1060,7 @@ namespace AircraftHUD
             float verticalVelocity = (float)GetVerticalVelocity(controlledVehicle);
 
             double gravity = GetGravity(controlledVehicle);
-            float gForce = (float)(controlledVehicle.AccelerationBody.Length() - gravity) / 9.80665f;
+            float gForce = (float)(controlledVehicle.AccelerationBody.Length() - gravity) / (float)KSA.Constants.STANDARD_GRAVITY;
 
             // ATTITUDE
             double3 EulerRad = GetSurfaceAttitude(controlledVehicle);
@@ -1166,10 +1155,10 @@ namespace AircraftHUD
             // bottom right
             DrawTextAligned(draw_list, new float2(localCenter.X + (textPosX2 * 0.85f), localCenter.Y + (verticalScaleLenY * 1.25f)), color, "V " + FormatVerticalVelocityString(verticalVelocity), TextAlignHoriz.Left);
 
-            if (AtmosphereDensity > 0)
+            if (atmosphere != null)
             {
                 // MACH
-                double speedOfSound = Math.Sqrt(1.4 * AtmospherePressure / AtmosphereDensity);
+                double speedOfSound = Math.Sqrt(1.4 * atmosphere.ComputePressureAtAltitude(altitude) / atmosphere.ComputeDensityAtAltitude(altitude));
                 double mach = velocity / speedOfSound;
 
                 // bottom left
